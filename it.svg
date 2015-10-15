@@ -3,8 +3,8 @@
 <g id="BG">
 	<rect x="152.9" y="352" fill="white" width="136.7" height="131"/>
     <rect x="300.9" y="352" fill="white" width="136.7" height="131"/>
-    <rect x="300.9" y="652" fill="white" width="136.7" height="131"/>
-    <rect x="152.9" y="652" fill="white" width="136.7" height="131"/>
+    <rect x="300.9" y="483" fill="white" width="136.7" height="131"/>
+    <rect x="152.9" y="483" fill="white" width="136.7" height="131"/>
 </g>
 <g id="FG">
 	<line  stroke="#000000" x1="665.3" y1="417" x2="665.3" y2="418.9"/>
