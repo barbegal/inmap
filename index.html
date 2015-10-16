@@ -1,0 +1,78 @@
+<html>
+<!doctype html>
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="Goldiloader">    
+    <title>Parse-to-Color</title>
+    <style>
+        body    {   margin:0px;}
+        svg     {   position:absolute;
+                    top: 0px;
+                    left: 0px;}
+        svg text {  background-color: rgba(255,255,255,.8);
+                    z-index: 10;
+                    visibility: hidden;}
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.6/angular.js"></script>
+    <script type="text/javascript" src="http://www.parsecdn.com/js/parse-latest.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.js"></script>
+</head>
+<body ng-app="mapp">
+<div ng-controller="cntrl">{{outcome}}</div>
+<script type="text/javascript">
+    Parse.initialize("D2tL25txp2bHA6WqVeiu8KgRrPHsI2RCGLY3Q7QE", "lYVF2S7WJOn0HJmNnPhFzOU3oeZjB10wMF8SkmW0");    
+    angular.module('mapp', []).controller('cntrl', ['$scope', function($scope) {
+        $scope.outcome = 'Rectangle color represents sound count from zero to 20...';  
+        Parse.Cloud.run("read",{},{success: function(result){
+            drawBack(result);
+        }});
+        //$scope.outcome = result.length + "sensors returned status...drawing graphic";
+        function drawBack(result) {
+            var d3SVG = "https://raw.githubusercontent.com/barbegal/inmap/master/it.svg";
+            d3.xml(d3SVG, "image/svg+xml", function(xml) {
+                document.body.appendChild(xml.documentElement); // add SG
+                var zoom = d3.behavior.zoom()
+                .scaleExtent([0, 4])
+                .on("zoom", zoomer);
+                var svg = d3.select("body").select("svg")
+                .call(zoom)
+                .style("width", window.innerWidth)
+                .style("height", window.innerHeight)
+                .style("pointer-events", "all"); 
+                var container = svg.selectAll("g");
+                function zoomer() {container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");}
+                var cores = {"250042000347343337373739" : {"x":230,"y":320},
+                             "1f003b000247343138333038" : {"x":400,"y":230},
+                             "40003d000847343232363230" : {"x":300,"y":470} };
+                var svgs = document.getElementById('BG').children;
+                for(var i = 0; i < svgs.length; i++){
+                    var out = 0, w = 0;
+                    for(var j = 0; j < result.length; j++){
+                        var read = result[j].get("Noises"); 
+                        var loc = cores[result[j].get("coreid")];
+                        if (loc != null){
+                            var bbox = svgs[i].getBBox();
+                            var cen = {"x": bbox.x + bbox.width/2, "y": bbox.y + bbox.height/2};
+                            var dsq = Math.pow(cen.x-loc.x,2)+Math.pow(cen.y-loc.y,2); 
+                            out += parseFloat(read)/dsq;
+                              w += 1/dsq;
+                            if (i==0){ //only make once for each sensor
+                                var col  = "rgb(255,255,"+(255-parseInt(read*255/10))+")";
+                                d3.select("body").select("svg").select("g#FG").append("g").append("circle")
+                                    .attr("cx", loc.x).attr("cy", loc.y).attr("r", 8).style("fill", col).style("stroke","blacK");
+                                d3.select("body").select("svg").select("g#FG").append("text").attr("x", loc.x).attr("y", loc.y)
+                                    .text("Noises: "+ read).style("visibility", "hidden")
+                                    .on("mouseover", function(d){return d3.select(this).style("visibility", "visible");})
+                                    .on("mouseout",  function(d){return d3.select(this).style("visibility", "hidden" );});
+                            }
+                        }
+                    }
+                    var color = "rgb(255,255,"+(255-parseInt(out/w*255/10))+")";
+                    svgs[i].style.fill = color;
+                }
+            });
+        }  
+    }]);
+</script>
+</body>
+</html>
